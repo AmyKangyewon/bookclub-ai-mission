@@ -113,7 +113,7 @@ async function say(lines,big){for(const l of lines){const t=document.createEleme
 function paintProg(){[...prog.children].forEach((i,n)=>i.classList.toggle('done',n<step))}
 
 async function ask(){paintProg();if(step>=Q.length)return summary();const q=Q[step];await say(q.ai,step===0||q.type==='multi');renderInput(q)}
-function renderInput(q){bar.innerHTML='';
+function renderInput(q){busy=false;bar.innerHTML='';
   if(q.type==='pick'){const c=document.createElement('div');c.className='chips';c.innerHTML=q.opts.map(o=>`<button type="button" data-v="${esc(o)}">${esc(o)}</button>`).join('');c.onclick=e=>{const b=e.target.closest('[data-v]');if(b)answer(q,b.dataset.v)};bar.appendChild(c)}
   else if(q.type==='multi'){let sel=ans[q.k]?ans[q.k].slice():[];const c=document.createElement('div');c.className='chips';const row=document.createElement('div');row.className='row';const n=document.createElement('div');n.className='note';n.style.flex='1';const btn=document.createElement('button');btn.className='send';btn.textContent='고르기 완료';
     const paint=()=>{c.querySelectorAll('button').forEach(b=>{const on=sel.includes(b.dataset.v);b.classList.toggle('sel',on);b.classList.toggle('off',!on&&sel.length>=q.n)});n.textContent=`${sel.length} / ${q.n}`;btn.disabled=sel.length!==q.n};
@@ -121,16 +121,17 @@ function renderInput(q){bar.innerHTML='';
     btn.onclick=()=>answer(q,sel);row.append(n,btn);bar.append(c,row);paint()}
   else{const row=document.createElement('div');row.className='row';const inp=document.createElement(q.type==='long'?'textarea':'input');if(q.type!=='long')inp.type='text';inp.placeholder=q.ph||'';inp.value=ans[q.k]||'';inp.id='in_'+q.k;inp.setAttribute('aria-label',q.ph||'답변');
     const btn=document.createElement('button');btn.className='send';btn.textContent='보내기';const go=()=>{const v=inp.value.trim();if(!v&&q.k!=='kid')return;answer(q,v||'없음')};btn.onclick=go;
-    inp.addEventListener('keydown',e=>{if(e.key==='Enter'&&(q.type!=='long'||e.metaKey||e.ctrlKey)){e.preventDefault();go()}});
+    inp.addEventListener('keydown',e=>{if(e.isComposing||e.keyCode===229)return;if(e.key==='Enter'&&(q.type!=='long'||e.metaKey||e.ctrlKey)){e.preventDefault();go()}});
     if(q.type==='long')inp.addEventListener('input',()=>{inp.style.height='auto';inp.style.height=Math.min(160,inp.scrollHeight)+'px'});
     row.append(inp,btn);bar.appendChild(row);
     if(step>0){const g=document.createElement('button');g.className='ghost';g.textContent='← 이전 답 고치기';g.onclick=back;bar.appendChild(g)}
     setTimeout(()=>inp.focus(),50)}}
-function answer(q,v){ans[q.k]=v;const show=Array.isArray(v)?v.join(' · '):v;add('me',esc(show)+'<small>탭하면 고칠 수 있어요</small>').onclick=()=>edit(step);step++;ask()}
+let busy=false;
+function answer(q,v){if(busy||Q[step]!==q)return;busy=true;bar.innerHTML='';ans[q.k]=v;const show=Array.isArray(v)?v.join(' · '):v;add('me',esc(show)+'<small>탭하면 고칠 수 있어요</small>').onclick=()=>edit(step);step++;ask()}
 function back(){if(step>0)edit(step-1)}
-function edit(i){step=i;[...chat.querySelectorAll('.msg.me')].slice(i).forEach(m=>{let n=m.nextSibling;m.remove();while(n){const nx=n.nextSibling;n.remove();n=nx}});add('sys','고쳐볼게요');ask()}
+function edit(i){if(busy)return;busy=true;bar.innerHTML='';step=i;[...chat.querySelectorAll('.msg.me')].slice(i).forEach(m=>{let n=m.nextSibling;m.remove();while(n){const nx=n.nextSibling;n.remove();n=nx}});add('sys','고쳐볼게요');ask()}
 
-async function summary(){bar.innerHTML='';await say(['다 받았어요. 한 번만 확인해주세요 👀']);
+async function summary(){busy=false;bar.innerHTML='';await say(['다 받았어요. 한 번만 확인해주세요 👀']);
   const s=document.createElement('div');s.className='msg sum';s.innerHTML=`
    <div><div class="k">이름</div><div class="v big">${esc(ans.name)}</div></div>
    <div><div class="k">AI에게 맡긴 고민</div><div class="v">${esc(ans.worry)}</div></div>
