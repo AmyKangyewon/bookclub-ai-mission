@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>10월 책도내맘 사전미션</title>
+<meta name="description" content="AI가 묻고 내가 답하는 3분 비밀 인터뷰. 답은 모임 당일까지 봉인됩니다.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<style>
+/* palette: 밤 7시 반 남색 + 세션 노랑. type: Jua(말풍선 강조) + Noto Sans KR(본문). layout: 폰 1열 채팅, 하단 고정 입력바 */
+:root{
+  --ink:#12132b; --night:#1d1e48; --deep:#2a2b66; --mist:#edebff; --sun:#f5c842; --sun-ink:#2b2200;
+  --text:#f4f3ff; --dim:#a9a7d6; --ai:#ffffff; --ai-ink:#1d1e48; --me:#f5c842;
+  --display:'Jua','Noto Sans KR',sans-serif; --body:'Noto Sans KR',system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--ink);color:var(--text);font-family:var(--body);font-size:17px;line-height:1.55;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0;background:
+  radial-gradient(ellipse 80% 50% at 50% -10%,rgba(245,200,66,.18),transparent 60%),
+  radial-gradient(ellipse 60% 40% at 90% 100%,rgba(90,80,220,.25),transparent 60%);pointer-events:none}
+.app{position:relative;max-width:520px;margin:0 auto;min-height:100%;display:flex;flex-direction:column}
+header{position:sticky;top:0;z-index:3;padding:calc(14px + env(safe-area-inset-top,0px)) 20px 12px;background:linear-gradient(var(--ink) 70%,transparent);display:flex;align-items:center;gap:12px}
+.avatar{width:40px;height:40px;border-radius:50%;background:var(--sun);display:grid;place-items:center;font-size:22px;box-shadow:0 0 0 3px var(--night)}
+header h1{font-family:var(--display);font-weight:400;font-size:1.15rem;margin:0;line-height:1.2}
+header .sub{font-size:.78rem;color:var(--dim)}
+.prog{margin-left:auto;display:flex;gap:4px}
+.prog i{width:6px;height:6px;border-radius:50%;background:var(--deep);transition:background .3s}
+.prog i.done{background:var(--sun)}
+.chat{flex:1;padding:8px 16px 160px;display:flex;flex-direction:column;gap:10px}
+.msg{max-width:86%;padding:12px 16px;border-radius:20px;white-space:pre-wrap;word-break:keep-all;animation:pop .25s ease-out}
+.msg.ai{align-self:flex-start;background:var(--ai);color:var(--ai-ink);border-bottom-left-radius:6px}
+.msg.ai.big{font-family:var(--display);font-size:1.25rem;line-height:1.3}
+.msg.me{align-self:flex-end;background:var(--me);color:var(--sun-ink);border-bottom-right-radius:6px;cursor:pointer}
+.msg.me small{display:block;font-size:.7rem;opacity:.6;margin-top:4px}
+.msg.sys{align-self:center;background:transparent;color:var(--dim);font-size:.8rem;padding:4px 10px}
+.typing{align-self:flex-start;background:var(--ai);border-radius:20px;border-bottom-left-radius:6px;padding:14px 18px;display:flex;gap:5px}
+.typing i{width:7px;height:7px;border-radius:50%;background:#9e9cc9;animation:blink 1s infinite}
+.typing i:nth-child(2){animation-delay:.2s}.typing i:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,80%,100%{opacity:.3}40%{opacity:1}}
+@keyframes pop{from{transform:translateY(6px);opacity:0}to{transform:none;opacity:1}}
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:4;padding:12px 16px calc(14px + env(safe-area-inset-bottom,0px));background:linear-gradient(transparent,var(--ink) 25%)}
+.bar .inner{max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:10px}
+.row{display:flex;gap:8px;align-items:flex-end}
+textarea,input[type=text]{flex:1;font:inherit;color:var(--text);background:var(--night);border:1.5px solid var(--deep);border-radius:18px;padding:12px 16px;resize:none;min-height:48px;max-height:160px;line-height:1.45}
+textarea:focus,input:focus{outline:none;border-color:var(--sun)}
+textarea::placeholder,input::placeholder{color:var(--dim)}
+button{font:inherit;cursor:pointer;border:0;border-radius:18px;padding:12px 18px;background:var(--deep);color:var(--text);font-weight:500}
+button:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+button.send{background:var(--sun);color:var(--sun-ink);font-family:var(--display);font-size:1.05rem;min-width:72px;padding:12px 18px}
+button:disabled{opacity:.4;cursor:default}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips button{padding:10px 14px;border-radius:999px;background:var(--night);border:1.5px solid var(--deep)}
+.chips button.sel{background:var(--sun);color:var(--sun-ink);border-color:var(--sun);font-weight:700}
+.chips button.off{opacity:.35}
+.note{font-size:.8rem;color:var(--dim);text-align:center}
+.ghost{background:transparent;color:var(--dim);padding:6px 10px;font-size:.85rem}
+/* summary */
+.sum{align-self:stretch;background:var(--night);border:1.5px solid var(--deep);border-radius:20px;padding:16px 18px;display:grid;gap:10px}
+.sum .k{font-size:.75rem;color:var(--dim)}
+.sum .v{white-space:pre-wrap}
+.sum .v.big{font-family:var(--display);font-size:1.2rem;color:var(--sun)}
+/* seal */
+.seal{align-self:center;text-align:center;padding:30px 0 10px;display:grid;gap:10px;justify-items:center}
+.env{width:120px;height:84px;position:relative;filter:drop-shadow(0 12px 24px rgba(0,0,0,.4))}
+.env .b{position:absolute;inset:0;background:var(--mist);border-radius:10px}
+.env .f{position:absolute;left:0;right:0;top:0;height:50%;background:#d9d6ff;clip-path:polygon(0 0,100% 0,50% 100%);transform-origin:top;animation:flap 1s .3s ease-in-out forwards}
+.env .s{position:absolute;left:50%;top:44%;width:34px;height:34px;margin-left:-17px;border-radius:50%;background:var(--sun);display:grid;place-items:center;font-size:18px;transform:scale(0);animation:stamp .4s 1.1s cubic-bezier(.2,1.6,.4,1) forwards}
+@keyframes flap{to{transform:rotateX(180deg)}}
+@keyframes stamp{to{transform:scale(1)}}
+.seal h2{font-family:var(--display);font-weight:400;font-size:1.7rem;margin:6px 0 0;color:var(--sun)}
+@media (prefers-reduced-motion:reduce){.msg,.typing i{animation:none}.env .f{animation:none;transform:rotateX(180deg)}.env .s{animation:none;transform:scale(1)}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="avatar" aria-hidden="true">🤖</div>
+    <div><h1>10월 책도내맘 사전미션</h1><div class="sub">답은 모임 당일까지 봉인됩니다</div></div>
+    <div class="prog" id="prog" aria-label="진행도"></div>
+  </header>
+  <main class="chat" id="chat" aria-live="polite"></main>
+</div>
+<div class="bar" id="bar"><div class="inner" id="barInner"></div></div>
+<iframe name="gf" id="gf" hidden title="전송"></iframe>
+<form id="gform" action="https://docs.google.com/forms/d/e/1FAIpQLSd1M_Jgeeg0Li6N-k2QnkMr_0B0ajDtisV9Ra-ZS0z6301FMA/formResponse" method="POST" target="gf" hidden></form>
+
+<script>
+const NAMES=['유안(혜미)','윤나','보미','송이(첫눈송이)','다운(다다)','경란','영미','예원'];
+const SKILLS=['호기심','글쓰기','수학','외국어','관계력','끈기','창의력','판단력','운동','리더십','공감','질문하는 능력'];
+const Q=[
+ {k:'name',id:'1652266263',type:'pick',opts:NAMES,ai:['안녕하세요 👋 저는 오늘 질문 담당 AI예요.','9개만 물어볼게요. 3분이면 끝나요.\n답은 예원 말고는 아무도 못 봅니다 🤫','먼저, 누구세요?']},
+ {k:'worry',id:'2122531260',type:'text',ph:'예) 겨울방학 계획표, 시댁 선물, 남편한테 보낼 카톡',ai:['반가워요 {name}님 😊','이번 주에 저 같은 AI한테 어떤 고민을 맡겨보셨어요? 한 줄로요.']},
+ {k:'a',id:'703658304',type:'long',ph:'AI가 뭐라고 했고, 뭐가 좋았는지',ai:['오, "{worry}"요.','그래서 ① "와, 이건 진짜 잘한다" 싶었던 건 뭐였어요?']},
+ {k:'b',id:'1294727578',type:'long',ph:'황당했던 답. 캡처는 폰에 저장해 두고 당일 보여주세요',ai:['칭찬 감사합니다 🙇','근데 솔직히… ② "미친 거 아니야?" 싶었던 답도 있었죠? 🏆\n제일 황당했던 거 1등은 상품이 있대요.']},
+ {k:'c',id:'1857489243',type:'long',ph:'AI한테 안 맡기고 싶었던 것, 그 이유',ai:['…네, 저도 알아요. 😅','그래도 ③ 결국 내가 직접 해야겠다고 느낀 건 뭐예요?']},
+ {k:'top3',id:'2072680849',type:'multi',opts:SKILLS,n:3,ai:['여기서부터는 아이 얘기예요 🧒','2040년, 지금 초1이 스물한 살이 될 때.\n저 같은 AI가 웬만한 건 다 해준다면, 아이에게 딱 3가지만 줄 수 있어요. 뭘 고르시겠어요?']},
+ {k:'l1',id:'1647873421',type:'text',ph:'예) 정보 찾기 / 글 초안 / 여행 계획',ai:['{top3}. 기억해둘게요.','마지막 다짐이에요. 빈칸만 채워주세요.\n"나는 AI에게 ____까지 맡기겠다."']},
+ {k:'l2',id:'1436638769',type:'text',ph:'예) 결정 / 아이한테 하는 말 / 마음 전하기',ai:['"하지만 ____는 내가 하겠다."']},
+ {k:'kid',id:'157852955',type:'text',ph:'없으면 "없음"이라고 적어도 돼요',ai:['마지막! 이건 선택이에요.','{name}님네 아이가 당일 저한테 물어볼 질문 하나, 미리 받아둘까요?\n예) "상어랑 사자 싸우면 누가 이겨?"']},
+];
+const ans={};let step=0;
+const chat=document.getElementById('chat'),bar=document.getElementById('barInner'),prog=document.getElementById('prog');
+prog.innerHTML=Q.map(()=>'<i></i>').join('');
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const sleep=ms=>new Promise(r=>setTimeout(r,reduce?0:ms));
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fill=t=>t.replace(/\{(\w+)\}/g,(_,k)=>k==='top3'?(ans.top3||[]).join(', '):(ans[k]||'').split('(')[0]);
+function scroll(){requestAnimationFrame(()=>window.scrollTo({top:document.body.scrollHeight,behavior:reduce?'auto':'smooth'}))}
+function add(cls,html){const d=document.createElement('div');d.className='msg '+cls;d.innerHTML=html;chat.appendChild(d);scroll();return d}
+async function say(lines,big){for(const l of lines){const t=document.createElement('div');t.className='typing';t.innerHTML='<i></i><i></i><i></i>';chat.appendChild(t);scroll();await sleep(Math.min(1400,350+l.length*18));t.remove();add('ai'+(big?' big':''),esc(fill(l)))}}
+function paintProg(){[...prog.children].forEach((i,n)=>i.classList.toggle('done',n<step))}
+
+async function ask(){paintProg();if(step>=Q.length)return summary();const q=Q[step];await say(q.ai,step===0||q.type==='multi');renderInput(q)}
+function renderInput(q){bar.innerHTML='';
+  if(q.type==='pick'){const c=document.createElement('div');c.className='chips';c.innerHTML=q.opts.map(o=>`<button type="button" data-v="${esc(o)}">${esc(o)}</button>`).join('');c.onclick=e=>{const b=e.target.closest('[data-v]');if(b)answer(q,b.dataset.v)};bar.appendChild(c)}
+  else if(q.type==='multi'){let sel=ans[q.k]?ans[q.k].slice():[];const c=document.createElement('div');c.className='chips';const row=document.createElement('div');row.className='row';const n=document.createElement('div');n.className='note';n.style.flex='1';const btn=document.createElement('button');btn.className='send';btn.textContent='고르기 완료';
+    const paint=()=>{c.querySelectorAll('button').forEach(b=>{const on=sel.includes(b.dataset.v);b.classList.toggle('sel',on);b.classList.toggle('off',!on&&sel.length>=q.n)});n.textContent=`${sel.length} / ${q.n}`;btn.disabled=sel.length!==q.n};
+    c.innerHTML=q.opts.map(o=>`<button type="button" data-v="${esc(o)}">${esc(o)}</button>`).join('');c.onclick=e=>{const b=e.target.closest('[data-v]');if(!b)return;const v=b.dataset.v;sel=sel.includes(v)?sel.filter(x=>x!==v):(sel.length<q.n?[...sel,v]:sel);paint()};
+    btn.onclick=()=>answer(q,sel);row.append(n,btn);bar.append(c,row);paint()}
+  else{const row=document.createElement('div');row.className='row';const inp=document.createElement(q.type==='long'?'textarea':'input');if(q.type!=='long')inp.type='text';inp.placeholder=q.ph||'';inp.value=ans[q.k]||'';inp.id='in_'+q.k;inp.setAttribute('aria-label',q.ph||'답변');
+    const btn=document.createElement('button');btn.className='send';btn.textContent='보내기';const go=()=>{const v=inp.value.trim();if(!v&&q.k!=='kid')return;answer(q,v||'없음')};btn.onclick=go;
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter'&&(q.type!=='long'||e.metaKey||e.ctrlKey)){e.preventDefault();go()}});
+    if(q.type==='long')inp.addEventListener('input',()=>{inp.style.height='auto';inp.style.height=Math.min(160,inp.scrollHeight)+'px'});
+    row.append(inp,btn);bar.appendChild(row);
+    if(step>0){const g=document.createElement('button');g.className='ghost';g.textContent='← 이전 답 고치기';g.onclick=back;bar.appendChild(g)}
+    setTimeout(()=>inp.focus(),50)}}
+function answer(q,v){ans[q.k]=v;const show=Array.isArray(v)?v.join(' · '):v;add('me',esc(show)+'<small>탭하면 고칠 수 있어요</small>').onclick=()=>edit(step);step++;ask()}
+function back(){if(step>0)edit(step-1)}
+function edit(i){step=i;[...chat.querySelectorAll('.msg.me')].slice(i).forEach(m=>{let n=m.nextSibling;m.remove();while(n){const nx=n.nextSibling;n.remove();n=nx}});add('sys','고쳐볼게요');ask()}
+
+async function summary(){bar.innerHTML='';await say(['다 받았어요. 한 번만 확인해주세요 👀']);
+  const s=document.createElement('div');s.className='msg sum';s.innerHTML=`
+   <div><div class="k">이름</div><div class="v big">${esc(ans.name)}</div></div>
+   <div><div class="k">AI에게 맡긴 고민</div><div class="v">${esc(ans.worry)}</div></div>
+   <div><div class="k">① 잘한다</div><div class="v">${esc(ans.a)}</div></div>
+   <div><div class="k">② 미친 거 아니야? 🏆</div><div class="v">${esc(ans.b)}</div></div>
+   <div><div class="k">③ 그래도 내가</div><div class="v">${esc(ans.c)}</div></div>
+   <div><div class="k">아이에게 줄 3가지</div><div class="v big">${esc(ans.top3.join(' · '))}</div></div>
+   <div><div class="k">다짐</div><div class="v">AI에게 <b>${esc(ans.l1)}</b>까지 맡기겠다.\n하지만 <b>${esc(ans.l2)}</b>는 내가 하겠다.</div></div>
+   <div><div class="k">아이 질문</div><div class="v">${esc(ans.kid)}</div></div>`;chat.appendChild(s);scroll();
+  const row=document.createElement('div');row.className='row';const g=document.createElement('button');g.className='ghost';g.textContent='← 고치기';g.onclick=()=>edit(Q.length-1);
+  const b=document.createElement('button');b.className='send';b.style.flex='1';b.textContent='봉인하기 🤫';b.onclick=()=>submit(b);row.append(g,b);bar.append(row)}
+
+function submit(btn){btn.disabled=true;btn.textContent='봉인 중…';const f=document.getElementById('gform');f.innerHTML='';
+  const put=(id,v)=>{const i=document.createElement('input');i.name='entry.'+id;i.value=v;f.appendChild(i)};
+  Q.forEach(q=>{const v=ans[q.k];if(Array.isArray(v))v.forEach(x=>put(q.id,x));else put(q.id,v||'')});
+  let done=false;const finish=()=>{if(done)return;done=true;sealed()};
+  document.getElementById('gf').onload=finish;f.submit();setTimeout(finish,2500)}
+async function sealed(){bar.innerHTML='';try{localStorage.setItem('bk_sent',Date.now())}catch(e){}
+  const s=document.createElement('div');s.className='msg seal';s.innerHTML=`<div class="env"><div class="b"></div><div class="f"></div><div class="s">🔒</div></div><h2>봉인 완료</h2><div class="note">모임 당일에 열립니다.<br>고치고 싶으면 처음부터 다시 보내면 돼요, 마지막 것만 씁니다.</div>`;chat.appendChild(s);scroll();
+  await sleep(1800);await say(['그럼 당일에 봬요 {name}님. 제가 이겼는지 지켜봐 주세요 😏']);
+  const r=document.createElement('button');r.className='ghost';r.textContent='처음부터 다시 쓰기';r.onclick=()=>location.reload();bar.appendChild(r)}
+ask();
+</script>
+</body>
+</html>
