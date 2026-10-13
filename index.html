@@ -40,7 +40,7 @@ header .sub{font-size:.78rem;color:var(--dim)}
 .typing i:nth-child(2){animation-delay:.2s}.typing i:nth-child(3){animation-delay:.4s}
 @keyframes blink{0%,80%,100%{opacity:.3}40%{opacity:1}}
 @keyframes pop{from{transform:translateY(6px);opacity:0}to{transform:none;opacity:1}}
-.bar{position:fixed;left:0;right:0;bottom:0;z-index:4;padding:12px 16px calc(14px + env(safe-area-inset-bottom,0px));background:linear-gradient(transparent,var(--ink) 25%)}
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:4;padding:16px 16px calc(14px + env(safe-area-inset-bottom,0px));background:linear-gradient(transparent,var(--ink) 14px)}
 .bar .inner{max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:10px}
 .row{display:flex;gap:8px;align-items:flex-end}
 textarea,input[type=text]{flex:1;font:inherit;color:var(--text);background:var(--night);border:1.5px solid var(--deep);border-radius:18px;padding:12px 16px;resize:none;min-height:48px;max-height:160px;line-height:1.45}
@@ -107,6 +107,9 @@ const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const sleep=ms=>new Promise(r=>setTimeout(r,reduce?0:ms));
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const fill=t=>t.replace(/\{(\w+)\}/g,(_,k)=>k==='top3'?(ans.top3||[]).join(', '):(ans[k]||'').split('(')[0]);
+const barEl=document.getElementById('bar');
+function fitBar(){chat.style.paddingBottom=(barEl.offsetHeight+24)+'px'}
+new ResizeObserver(()=>{fitBar();scroll()}).observe(barEl);fitBar();
 function scroll(){requestAnimationFrame(()=>window.scrollTo({top:document.body.scrollHeight,behavior:reduce?'auto':'smooth'}))}
 function add(cls,html){const d=document.createElement('div');d.className='msg '+cls;d.innerHTML=html;chat.appendChild(d);scroll();return d}
 async function say(lines,big){for(const l of lines){const t=document.createElement('div');t.className='typing';t.innerHTML='<i></i><i></i><i></i>';chat.appendChild(t);scroll();await sleep(Math.min(1400,350+l.length*18));t.remove();add('ai'+(big?' big':''),esc(fill(l)))}}
